@@ -17,16 +17,20 @@ namespace ImageGallery.API.Services
         {
             return _context.Images.Any(i => i.Id == id);
         }
-        
+
+        public bool IsImageOwner(Guid id, string ownerId)
+        {
+            return _context.Images.Any(i => i.Id == id && i.OwnerId == ownerId);
+        }
+
         public Image GetImage(Guid id)
         {
             return _context.Images.FirstOrDefault(i => i.Id == id);
         }
   
-        public IEnumerable<Image> GetImages()
+        public IEnumerable<Image> GetImages(string ownderId)
         {
-            return _context.Images
-                .OrderBy(i => i.Title).ToList();
+            return _context.Images.Where(i => i.OwnerId == ownderId).OrderBy(i => i.Title).ToList();
         }
 
         public void AddImage(Image image)

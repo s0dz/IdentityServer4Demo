@@ -7,10 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ImageGallery.API.Controllers
 {
     [Route("api/images")]
+    [Authorize]
     public class ImagesController : Controller
     {
         private readonly IGalleryRepository _galleryRepository;
@@ -26,8 +29,10 @@ namespace ImageGallery.API.Controllers
         [HttpGet()]
         public IActionResult GetImages()
         {
+            var ownerId = User.Claims.FirstOrDefault(c => c.Type == "sub").Value;
+
             // get from repo
-            var imagesFromRepo = _galleryRepository.GetImages();
+            var imagesFromRepo = _galleryRepository.GetImages(ownerId);
 
             // map to model
             var imagesToReturn = Mapper.Map<IEnumerable<Model.Image>>(imagesFromRepo);
@@ -39,6 +44,13 @@ namespace ImageGallery.API.Controllers
         [HttpGet("{id}", Name = "GetImage")]
         public IActionResult GetImage(Guid id)
         {
+            var ownerId = User.Claims.FirstOrDefault(c => c.Type == "sub").Value;
+
+            if (!_galleryRepository.IsImageOwner(id, ownerId))
+            {
+                return StatusCode((int)System.Net.HttpStatusCode.Forbidden);
+            }
+
             var imageFromRepo = _galleryRepository.GetImage(id);
 
             if (imageFromRepo == null)
@@ -52,6 +64,7 @@ namespace ImageGallery.API.Controllers
         }
 
         [HttpPost()]
+        [Authorize(Roles = "PayingUser")]
         public IActionResult CreateImage([FromBody] ImageForCreation imageForCreation)
         {
             if (imageForCreation == null)
@@ -87,6 +100,10 @@ namespace ImageGallery.API.Controllers
             // fill out the filename
             imageEntity.FileName = fileName;
 
+            // set ownerId from User.Claims
+            var ownerId = User.Claims.FirstOrDefault(c => c.Type == "sub").Value;
+            imageEntity.OwnerId = ownerId;
+
             // add and save.  
             _galleryRepository.AddImage(imageEntity);
 
@@ -105,6 +122,13 @@ namespace ImageGallery.API.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteImage(Guid id)
         {
+            var ownerId = User.Claims.FirstOrDefault(c => c.Type == "sub").Value;
+
+            if (!_galleryRepository.IsImageOwner(id, ownerId))
+            {
+                return StatusCode((int)System.Net.HttpStatusCode.Forbidden);
+            }
+
             var imageFromRepo = _galleryRepository.GetImage(id);
 
             if (imageFromRepo == null)
@@ -125,7 +149,14 @@ namespace ImageGallery.API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateImage(Guid id, 
             [FromBody] ImageForUpdate imageForUpdate)
-        {           
+        {
+            var ownerId = User.Claims.FirstOrDefault(c => c.Type == "sub").Value;
+
+            if (!_galleryRepository.IsImageOwner(id, ownerId))
+            {
+                return StatusCode((int)System.Net.HttpStatusCode.Forbidden);
+            }
+
             if (imageForUpdate == null)
             {
                 return BadRequest();
