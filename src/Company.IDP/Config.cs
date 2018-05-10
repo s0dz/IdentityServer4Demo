@@ -67,6 +67,7 @@ namespace Company.IDP
                     {
                         new Secret("secret".Sha256())
                     },
+                    PostLogoutRedirectUris = { "https://localhost:44361/signout-callback-oidc" }
                     // AlwaysIncludeUserClaimsInIdToken = true // This is not IdentityServer's default behavior because of security concerns
                 }
             };

@@ -65,6 +65,8 @@ namespace ImageGallery.Client
                 ClientId = "imagegalleryclient",
                 Scope = { "openid", "profile" },
                 ResponseType = "code id_token",
+                // CallbackPath = new PathString(""), // Only use if you want to overwrite default path
+                // SignedOutCallbackPath = new PathString(""), // Only use if you want to overwrite default path
                 SignInScheme = "Cookies",
                 SaveTokens = true,
                 ClientSecret = "secret",
