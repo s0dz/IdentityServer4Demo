@@ -176,6 +176,7 @@ namespace ImageGallery.Client.Controllers
             await HttpContext.Authentication.SignOutAsync("oidc");    // Matches AuthenticationScheme in Startup.cs
         }
 
+        [Authorize(Roles = "PayingUser")]
         public async Task<IActionResult> OrderFrame()
         {
             var discoveryClient = new DiscoveryClient("https://localhost:44379/");

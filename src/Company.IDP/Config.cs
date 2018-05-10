@@ -17,12 +17,12 @@ namespace Company.IDP
                     SubjectId = "8249",
                     Username = "Garrett",
                     Password = "password",
-
                     Claims = new List<Claim>
                     {
                         new Claim("given_name", "Garrett"),
                         new Claim("family_name", "McTear"),
-                        new Claim("address", "1973 S 900 E")
+                        new Claim("address", "1973 S 900 E"),
+                        new Claim("role", "FreeUser")
                     }
                 },
                 new TestUser
@@ -30,12 +30,12 @@ namespace Company.IDP
                     SubjectId = "7484",
                     Username = "Leo",
                     Password = "password",
-
                     Claims = new List<Claim>
                     {
                         new Claim("given_name", "Leo"),
                         new Claim("family_name", "Pants"),
-                        new Claim("address", "17 Bark Street")
+                        new Claim("address", "17 Bark Street"),
+                        new Claim("role", "PayingUser")
                     }
                 }
             };
@@ -47,7 +47,8 @@ namespace Company.IDP
             {
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
-                new IdentityResources.Address()
+                new IdentityResources.Address(),
+                new IdentityResource("roles", "Your Role(s)", new List<string>{"role"})
             };
         }
 
@@ -65,7 +66,8 @@ namespace Company.IDP
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
-                        IdentityServerConstants.StandardScopes.Address
+                        IdentityServerConstants.StandardScopes.Address,
+                        "roles"
                     },
                     ClientSecrets =
                     {
