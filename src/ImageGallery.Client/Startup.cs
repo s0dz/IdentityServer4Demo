@@ -71,7 +71,7 @@ namespace ImageGallery.Client
                 Authority = "https://localhost:44379/",
                 RequireHttpsMetadata = true,
                 ClientId = "imagegalleryclient",
-                Scope = { "openid", "profile" },
+                Scope = { "openid", "profile", "address" },
                 ResponseType = "code id_token",
                 // CallbackPath = new PathString(""), // Only use if you want to overwrite default path
                 // SignedOutCallbackPath = new PathString(""), // Only use if you want to overwrite default path
@@ -102,6 +102,7 @@ namespace ImageGallery.Client
                     },
                     OnUserInformationReceived = userInformationReceivedContext =>
                     {
+                        userInformationReceivedContext.User.Remove("address");
                         return Task.FromResult(0);
                     }
                 }

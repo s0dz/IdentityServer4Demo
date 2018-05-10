@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using ImageGallery.Model;
 using System.Net.Http;
 using System.IO;
+using IdentityModel.Client;
 using ImageGallery.Client.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -169,6 +170,33 @@ namespace ImageGallery.Client.Controllers
             throw new Exception($"A problem happened while calling the API: {response.ReasonPhrase}");
         }
 
+        public async Task Logout()
+        {
+            await HttpContext.Authentication.SignOutAsync("Cookies"); // Matches AuthenticationScheme in Startup.cs
+            await HttpContext.Authentication.SignOutAsync("oidc");    // Matches AuthenticationScheme in Startup.cs
+        }
+
+        public async Task<IActionResult> OrderFrame()
+        {
+            var discoveryClient = new DiscoveryClient("https://localhost:44379/");
+            var metaDataResponse = await discoveryClient.GetAsync();
+
+            var userInfoClient = new UserInfoClient(metaDataResponse.UserInfoEndpoint);
+
+            var accessToken = await HttpContext.Authentication.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+
+            var response = await userInfoClient.GetAsync(accessToken);
+
+            if (response.IsError)
+            {
+                throw new Exception("Problem accessing the UserInfo endpoint.", response.Exception);
+            }
+
+            var address = response.Claims.FirstOrDefault(c => c.Type == "address")?.Value;
+
+            return View(new OrderFrameViewModel(address));
+        }
+
         private async Task WriteOutIdentityInformation()
         {
             var identityToken = await HttpContext.Authentication.GetTokenAsync(OpenIdConnectParameterNames.IdToken);
@@ -179,12 +207,6 @@ namespace ImageGallery.Client.Controllers
             {
                 Debug.WriteLine($"Claim Type: {claim.Type} - Claim Value: {claim.Value}");
             }
-        }
-         
-        public async Task Logout()
-        {
-            await HttpContext.Authentication.SignOutAsync("Cookies"); // Matches AuthenticationScheme in Startup.cs
-            await HttpContext.Authentication.SignOutAsync("oidc");    // Matches AuthenticationScheme in Startup.cs
         }
     }
 }
