@@ -66,7 +66,8 @@ namespace Company.IDP
                     ClientSecrets =
                     {
                         new Secret("secret".Sha256())
-                    }
+                    },
+                    // AlwaysIncludeUserClaimsInIdToken = true // This is not IdentityServer's default behavior because of security concerns
                 }
             };
         }
