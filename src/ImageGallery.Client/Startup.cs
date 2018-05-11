@@ -34,6 +34,19 @@ namespace ImageGallery.Client
             // Add framework services.
             services.AddMvc();
 
+            // Add an authorization policy
+            services.AddAuthorization(authorizationOptions =>
+            {
+                authorizationOptions.AddPolicy(
+                    "CanOrderFrame",
+                    policyBuilder =>
+                    {
+                        policyBuilder.RequireAuthenticatedUser();
+                        policyBuilder.RequireClaim("country", "canada");
+                        policyBuilder.RequireClaim("subscriptionlevel", "PayingUser");
+                    });
+            });
+
             // register an IHttpContextAccessor so we can access the current
             // HttpContext in services by injecting it
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -72,7 +85,7 @@ namespace ImageGallery.Client
                 Authority = "https://localhost:44379/",
                 RequireHttpsMetadata = true,
                 ClientId = "imagegalleryclient",
-                Scope = { "openid", "profile", "address", "roles", "imagegalleryapi" },
+                Scope = { "openid", "profile", "address", "roles", "imagegalleryapi", "subscriptionlevel", "country" },
                 ResponseType = "code id_token",
                 // CallbackPath = new PathString(""), // Only use if you want to overwrite default path
                 // SignedOutCallbackPath = new PathString(""), // Only use if you want to overwrite default path
