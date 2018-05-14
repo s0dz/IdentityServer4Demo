@@ -64,6 +64,9 @@ namespace Company.IDP
             {
                 new ApiResource("imagegalleryapi", "Image Gallery API",
                 new List<string>{"role"})
+                {
+                    ApiSecrets = { new Secret("apisecret".Sha256()) }
+                }
             };
         }
 
@@ -76,6 +79,7 @@ namespace Company.IDP
                     ClientName = "Image Gallery",
                     ClientId = "imagegalleryclient",
                     AllowedGrantTypes = GrantTypes.Hybrid,
+                    AccessTokenType = AccessTokenType.Reference,
 
                     // IdentityTokenLifetime = 300,
                     // AuthorizationCodeLifetime = 300,

@@ -113,7 +113,8 @@ namespace ImageGallery.API
             {
                 Authority = "https://localhost:44379/",
                 RequireHttpsMetadata = true,
-                ApiName = "imagegalleryapi"
+                ApiName = "imagegalleryapi",
+                ApiSecret = "apisecret"
             });
 
             app.UseMvc(); 
