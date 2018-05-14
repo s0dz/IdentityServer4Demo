@@ -214,7 +214,7 @@ namespace ImageGallery.Client.Controllers
                 }
             }
 
-            // revoke refresk token
+            // revoke refresh token
             var refreshToken = await HttpContext.Authentication.GetTokenAsync(OpenIdConnectParameterNames.RefreshToken);
             if (!string.IsNullOrWhiteSpace(refreshToken))
             {
