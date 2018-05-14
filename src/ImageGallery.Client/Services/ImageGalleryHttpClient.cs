@@ -47,8 +47,7 @@ namespace ImageGallery.Client.Services
 
             _httpClient.BaseAddress = new Uri("https://localhost:44364/");
             _httpClient.DefaultRequestHeaders.Accept.Clear();
-            _httpClient.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             return _httpClient;
         }
