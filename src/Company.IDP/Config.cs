@@ -76,6 +76,19 @@ namespace Company.IDP
                     ClientName = "Image Gallery",
                     ClientId = "imagegalleryclient",
                     AllowedGrantTypes = GrantTypes.Hybrid,
+
+                    // IdentityTokenLifetime = 300,
+                    // AuthorizationCodeLifetime = 300,
+                    AccessTokenLifetime = 120, // Default is 3600 seconds (1 hour)
+
+                    // AbsoluteRefreshTokenLifetime = ...
+                    // RefreshTokenExpiration = TokenExpiration.Sliding,
+                    // SlidingRefreshTokenLifetime = ...
+
+                    UpdateAccessTokenClaimsOnRefresh = true,
+
+                    AllowOfflineAccess = true,
+
                     RedirectUris = new List<string>{ "https://localhost:44361/signin-oidc" },
                     AllowedScopes =
                     {
