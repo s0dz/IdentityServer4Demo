@@ -1,5 +1,6 @@
 ﻿using Company.IDP.Entities;
 using Company.IDP.Services;
+using IdentityServer4;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -60,6 +61,15 @@ namespace Company.IDP
             userContext.EnsureSeedDataForContext();
 
             app.UseIdentityServer();
+
+            app.UseFacebookAuthentication(new FacebookOptions
+            {
+                AuthenticationScheme = "Facebook",
+                DisplayName = "Facebook",
+                SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme,
+                AppId = "457627938026038",
+                AppSecret = "20744c09c5e8f24a678527eb66b4ba6d"
+            });
 
             app.UseStaticFiles();
 

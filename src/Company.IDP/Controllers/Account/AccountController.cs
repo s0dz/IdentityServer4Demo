@@ -14,7 +14,6 @@ using IdentityServer4.Events;
 using IdentityServer4.Extensions;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
-using IdentityServer4.Test;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -205,14 +204,35 @@ namespace Company.IDP.Controllers.Account
             var user = _userRepository.GetUserByProvider(provider, userId);
             if (user == null)
             {
+                // maybe user exists but without a connection to this provider
+                if (provider == "Facebook")
+                {
+                    // email claim from Facebook
+                    var email = claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress");
+                    if (email != null)
+                    {
+                        var userByEmail = _userRepository.GetUserByEmail(email.Value);
+                        if (userByEmail != null)
+                        {
+                            // add Facebook as a provider for this user
+                            _userRepository.AddUserLogin(userByEmail.SubjectId, provider, userId);
+                            if (!_userRepository.Save())
+                            {
+                                throw new Exception($"Adding login for user failed");
+                            }
+
+                            // redirect to ExternalLoginCallback
+                            var continuteWithUrlAfterAddingUserLogin = Url.Action("ExternalLoginCallback", new {returnUrl = returnUrl});
+                            return Redirect(Url.Action("ExternalLoginCallback", new { returnUrl = returnUrl }));
+                        }
+                    }
+                }
+
                 // this sample simply auto-provisions new external user
                 // another common approach is to start a registrations workflow first
                 // user = _users.AutoProvisionUser(provider, userId, claims);
                 var returnUrlAfterRegistration = Url.Action("ExternalLoginCallback", new { returnUrl = returnUrl });
-
-                var continuteWithUrl = Url.Action("RegisterUser", "UserRegistration",
-                    new { returnUrl = returnUrlAfterRegistration, provider = provider, providerUserId = userId });
-
+                var continuteWithUrl = Url.Action("RegisterUser", "UserRegistration", new { returnUrl = returnUrlAfterRegistration, provider = provider, providerUserId = userId });
                 return Redirect(continuteWithUrl);
             }
 
