@@ -27,7 +27,7 @@ namespace Company.IDP.Entities
                         new UserClaim("address", "1973 S 900 E"),
                         new UserClaim("role", "FreeUser"),
                         new UserClaim("subscriptionlevel", "FreeUser"),
-                        new UserClaim("country", "usa")
+                        new UserClaim("country", "US")
                     }
                 },
                 new User
@@ -42,7 +42,7 @@ namespace Company.IDP.Entities
                         new UserClaim("address", "17 Bark Street"),
                         new UserClaim("role", "PayingUser"),
                         new UserClaim("subscriptionlevel", "PayingUser"),
-                        new UserClaim("country", "canada")
+                        new UserClaim("country", "CA")
                     }
                 }
             };

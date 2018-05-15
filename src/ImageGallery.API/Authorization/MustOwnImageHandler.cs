@@ -21,7 +21,7 @@ namespace ImageGallery.API.Authorization
             if (!(context.Resource is AuthorizationFilterContext filterContext))
             {
                 context.Fail();
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             var imageId = filterContext.RouteData.Values["id"].ToString();
@@ -29,7 +29,7 @@ namespace ImageGallery.API.Authorization
             if (!Guid.TryParse(imageId, out var imageGuid))
             {
                 context.Fail();
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             var ownerId = context.User.Claims.FirstOrDefault(c => c.Type == "sub").Value;
@@ -37,11 +37,11 @@ namespace ImageGallery.API.Authorization
             if (!_galleryRepository.IsImageOwner(imageGuid, ownerId))
             {
                 context.Fail();
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             context.Succeed(requirement);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 }

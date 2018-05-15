@@ -24,7 +24,7 @@ namespace Company.IDP
                         new Claim("address", "1973 S 900 E"),
                         new Claim("role", "FreeUser"),
                         new Claim("subscriptionlevel", "FreeUser"),
-                        new Claim("country", "usa")
+                        new Claim("country", "US")
                     }
                 },
                 new TestUser
@@ -39,7 +39,7 @@ namespace Company.IDP
                         new Claim("address", "17 Bark Street"),
                         new Claim("role", "PayingUser"),
                         new Claim("subscriptionlevel", "PayingUser"),
-                        new Claim("country", "canada")
+                        new Claim("country", "CA")
                     }
                 }
             };
@@ -80,6 +80,8 @@ namespace Company.IDP
                     ClientId = "imagegalleryclient",
                     AllowedGrantTypes = GrantTypes.Hybrid,
                     AccessTokenType = AccessTokenType.Reference,
+
+                    RequireConsent = false, // TODO: This is for third-party integration with our app
 
                     // IdentityTokenLifetime = 300,
                     // AuthorizationCodeLifetime = 300,

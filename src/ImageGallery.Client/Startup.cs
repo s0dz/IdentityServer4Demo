@@ -42,7 +42,7 @@ namespace ImageGallery.Client
                     policyBuilder =>
                     {
                         policyBuilder.RequireAuthenticatedUser();
-                        policyBuilder.RequireClaim("country", "canada");
+                        policyBuilder.RequireClaim("country", "CA");
                         policyBuilder.RequireClaim("subscriptionlevel", "PayingUser");
                     });
             });
@@ -112,12 +112,12 @@ namespace ImageGallery.Client
                             tokenValidatedContext.Ticket.Properties,
                             tokenValidatedContext.Ticket.AuthenticationScheme);
 
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     },
                     OnUserInformationReceived = userInformationReceivedContext =>
                     {
                         userInformationReceivedContext.User.Remove("address");
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
                 }
             });

@@ -9,7 +9,7 @@ namespace Company.IDP.Migrations
 {
     [DbContext(typeof(UserContext))]
     [Migration("20180514235413_InitialUserDBMigration")]
-    partial class InitialUserDBMigration
+    partial class InitialUserDbMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

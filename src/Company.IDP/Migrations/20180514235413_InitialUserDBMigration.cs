@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Company.IDP.Migrations
 {
-    public partial class InitialUserDBMigration : Migration
+    public partial class InitialUserDbMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

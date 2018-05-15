@@ -37,7 +37,8 @@ namespace Company.IDP
 
             services.AddIdentityServer()
                 .AddTemporarySigningCredential()
-                .AddTestUsers(Config.GetUsers())
+                //.AddTestUsers(Config.GetUsers())
+                .AddCompanyUserStore()
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
                 .AddInMemoryApiResources(Config.GetApiResources())
                 .AddInMemoryClients(Config.GetClients());
