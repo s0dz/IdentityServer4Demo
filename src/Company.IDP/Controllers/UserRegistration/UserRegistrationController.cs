@@ -19,11 +19,13 @@ namespace Company.IDP.Controllers.UserRegistration
         }
 
         [HttpGet]
-        public IActionResult RegisterUser(string returnUrl)
+        public IActionResult RegisterUser(RegistrationInputModel registrationInputModel)
         {
             var vm = new RegisterUserViewModel
             {
-                ReturnUrl = returnUrl
+                ReturnUrl = registrationInputModel.ReturnUrl,
+                Provider = registrationInputModel.Provider,
+                ProviderUserId = registrationInputModel.ProviderUserId
             };
 
             return View(vm);
@@ -49,6 +51,16 @@ namespace Company.IDP.Controllers.UserRegistration
                 userToCreate.Claims.Add(new Entities.UserClaim("email", model.Email));
                 userToCreate.Claims.Add(new Entities.UserClaim("subscriptionlevel", "FreeUser"));
 
+                // if external, add provider & provider's user's id (external id) to this user's logins
+                if (model.IsProvisioningFromExternal)
+                {
+                    userToCreate.Logins.Add(new Entities.UserLogin
+                    {
+                        LoginProvider = model.Provider,
+                        ProviderKey = model.ProviderUserId
+                    });
+                }
+
                 // save user
                 _userRepository.AddUser(userToCreate);
                 if (!_userRepository.Save())
@@ -56,8 +68,11 @@ namespace Company.IDP.Controllers.UserRegistration
                     throw new Exception($"Creating user failed.");
                 }
 
-                // log the user in
-                await HttpContext.Authentication.SignInAsync(userToCreate.SubjectId, userToCreate.Username);
+                if (!model.IsProvisioningFromExternal)
+                {
+                    // log the user in
+                    await HttpContext.Authentication.SignInAsync(userToCreate.SubjectId, userToCreate.Username);
+                }
 
                 if (_interaction.IsValidReturnUrl(model.ReturnUrl) || Url.IsLocalUrl(model.ReturnUrl))
                 {

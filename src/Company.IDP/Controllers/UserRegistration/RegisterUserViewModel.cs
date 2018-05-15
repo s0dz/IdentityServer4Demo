@@ -34,6 +34,14 @@ namespace Company.IDP.Controllers.UserRegistration
                 new {Id = "US", Value = "United States of America"},
                 new {Id = "AU", Value = "Australia"}
             }, "Id", "Value");
+
         public string ReturnUrl { get; set; }
+        public string Provider { get; set; }
+        public string ProviderUserId { get; set; }
+
+        public bool IsProvisioningFromExternal
+        {
+            get { return Provider != null; }
+        }
     }
 }
