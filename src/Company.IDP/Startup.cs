@@ -1,4 +1,6 @@
-﻿using Company.IDP.Entities;
+﻿using System;
+using System.Security.Cryptography.X509Certificates;
+using Company.IDP.Entities;
 using Company.IDP.Services;
 using IdentityServer4;
 using Microsoft.AspNetCore.Builder;
@@ -25,6 +27,23 @@ namespace Company.IDP
             Configuration = builder.Build();
         }
 
+        public X509Certificate2 LoadCertificateFromStore()
+        {
+            var thumbPrint = "30c991845afd9b89233eea8eabcd36e0f3f6d276";
+
+            using (var store = new X509Store(StoreName.My, StoreLocation.LocalMachine))
+            {
+                store.Open(OpenFlags.ReadOnly);
+                var certCollection = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, true);
+                if (certCollection.Count == 0)
+                {
+                    throw new Exception("The specified certificate wasn't found.");
+                }
+
+                return certCollection[0];
+            }
+        }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
@@ -37,7 +56,8 @@ namespace Company.IDP
             services.AddMvc();
 
             services.AddIdentityServer()
-                .AddTemporarySigningCredential()
+                .AddSigningCredential(LoadCertificateFromStore())
+                //.AddTemporarySigningCredential()
                 //.AddTestUsers(Config.GetUsers())
                 .AddCompanyUserStore()
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
