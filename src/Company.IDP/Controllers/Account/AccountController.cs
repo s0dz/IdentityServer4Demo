@@ -78,30 +78,56 @@ namespace Company.IDP.Controllers.Account
             {
                 if (_userRepository.AreUserCredentialsValid(model.Username, model.Password))
                 {
-                    AuthenticationProperties props = null;
-                    // only set explicit expiration here if persistent. 
-                    // otherwise we reply upon expiration configured in cookie middleware.
-                    if (AccountOptions.AllowRememberLogin && model.RememberLogin)
-                    {
-                        props = new AuthenticationProperties
-                        {
-                            IsPersistent = true,
-                            ExpiresUtc = DateTimeOffset.UtcNow.Add(AccountOptions.RememberMeLoginDuration)
-                        };
-                    };
-
-                    // issue authentication cookie with subject ID and username
+                    // TWO FACTOR AUTHENTICATION
                     var user = _userRepository.GetUserByUsername(model.Username);
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.SubjectId, user.Username));
-                    await HttpContext.Authentication.SignInAsync(user.SubjectId, user.Username, props);
 
-                    // make sure the returnUrl is still valid, and if yes - redirect back to authorize endpoint or a local page
+                    var id = new ClaimsIdentity();
+                    id.AddClaim(new Claim(JwtClaimTypes.Subject, user.SubjectId));
+
+                    await HttpContext.Authentication.SignInAsync("idsrv.2FA", new ClaimsPrincipal(id));
+
+                    // TODO: send code...
+
+                    var redirectToAdditionalFactorUrl =
+                        Url.Action("AdditionalAuthenticationFactor",
+                        new
+                        {
+                            returnUrl = model.ReturnUrl,
+                            rememberLogin = model.RememberLogin
+                        });
+
                     if (_interaction.IsValidReturnUrl(model.ReturnUrl) || Url.IsLocalUrl(model.ReturnUrl))
                     {
-                        return Redirect(model.ReturnUrl);
+                        return Redirect(redirectToAdditionalFactorUrl);
                     }
 
                     return Redirect("~/");
+
+                    // SINGLE FACTOR AUTHENTICATION
+                    //AuthenticationProperties props = null;
+                    //// only set explicit expiration here if persistent. 
+                    //// otherwise we reply upon expiration configured in cookie middleware.
+                    //if (AccountOptions.AllowRememberLogin && model.RememberLogin)
+                    //{
+                    //    props = new AuthenticationProperties
+                    //    {
+                    //        IsPersistent = true,
+                    //        ExpiresUtc = DateTimeOffset.UtcNow.Add(AccountOptions.RememberMeLoginDuration)
+                    //    };
+                    //};
+
+                    //// issue authentication cookie with subject ID and username
+                    //var user = _userRepository.GetUserByUsername(model.Username);
+                    //await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.SubjectId, user.Username));
+                    //await HttpContext.Authentication.SignInAsync(user.SubjectId, user.Username, props);
+
+                    //// make sure the returnUrl is still valid, and if yes - redirect back to authorize endpoint or a local page
+                    //if (_interaction.IsValidReturnUrl(model.ReturnUrl) || Url.IsLocalUrl(model.ReturnUrl))
+                    //{
+                    //    return Redirect(model.ReturnUrl);
+                    //}
+
+                    //return Redirect("~/");
                 }
 
                 await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials"));
@@ -322,6 +348,68 @@ namespace Company.IDP.Controllers.Account
             }
 
             return View("LoggedOut", vm);
+        }
+
+        [HttpGet]
+        public IActionResult AdditionalAuthenticationFactor(string returnurl, bool rememberlogin)
+        {
+            var vm = new AdditionalAuthenticationFactorViewModel
+            {
+                ReturnUrl = returnurl,
+                RememberLogin = rememberlogin
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AdditionalAuthenticationFactor(AdditionalAuthenticationFactorViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var info = await HttpContext.Authentication.GetAuthenticateInfoAsync("idsrv.2FA");
+                var tempUser = info?.Principal;
+                if (tempUser == null)
+                {
+                    throw new Exception("2FA error");
+                }
+
+                var user = _userRepository.GetUserBySubjectId(tempUser.GetSubjectId());
+
+                // TODO: Check code for user
+                if (model.Code != "123")
+                {
+                    ModelState.AddModelError("code", "2FA code is invalid.");
+                    return View(model);
+                }
+
+                // login user
+                AuthenticationProperties props = null;
+                if (AccountOptions.AllowRememberLogin && model.RememberLogin)
+                {
+                    props = new AuthenticationProperties
+                    {
+                        IsPersistent = true,
+                        ExpiresUtc = DateTimeOffset.UtcNow.Add(AccountOptions.RememberMeLoginDuration)
+                    };
+                }
+
+                // issue authentication cookie
+                await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.SubjectId, user.Username));
+                await HttpContext.Authentication.SignInAsync(user.SubjectId, user.Username, props);
+
+                // delete temp 2FA cookie
+                await HttpContext.Authentication.SignOutAsync("idsrv.2FA");
+
+                if (_interaction.IsValidReturnUrl(model.ReturnUrl) || Url.IsLocalUrl(model.ReturnUrl))
+                {
+                    return Redirect(model.ReturnUrl);
+                }
+
+                return Redirect("~/");
+            }
+
+            return View(model);
         }
     }
 }

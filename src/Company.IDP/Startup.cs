@@ -60,6 +60,14 @@ namespace Company.IDP
             userContext.Database.Migrate();
             userContext.EnsureSeedDataForContext();
 
+            // 2-factor authentication
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
+            {
+                AuthenticationScheme = "idsrv.2FA",
+                AutomaticAuthenticate = false,
+                AutomaticChallenge = false
+            });
+
             app.UseIdentityServer();
 
             app.UseFacebookAuthentication(new FacebookOptions
