@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using Company.IDP.Entities;
 using Company.IDP.Services;
 using IdentityServer4;
+using IdentityServer4.EntityFramework.DbContexts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +55,10 @@ namespace Company.IDP
 
             services.AddScoped<IUserRepository, UserRepository>();
 
+            var identityServerDataDbConnectionString = Configuration["connectionStrings:identityServerDataDbConnectionString"];
+
+            var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
+
             services.AddMvc();
 
             services.AddIdentityServer()
@@ -60,14 +66,14 @@ namespace Company.IDP
                 //.AddTemporarySigningCredential()
                 //.AddTestUsers(Config.GetUsers())
                 .AddCompanyUserStore()
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddInMemoryApiResources(Config.GetApiResources())
-                .AddInMemoryClients(Config.GetClients());
+                .AddConfigurationStore(builder =>
+                    builder.UseSqlServer(identityServerDataDbConnectionString,
+                    options => options.MigrationsAssembly(migrationAssembly)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, 
-            ILoggerFactory loggerFactory, UserContext userContext)
+            ILoggerFactory loggerFactory, UserContext userContext, ConfigurationDbContext configurationDbContext)
         {
             loggerFactory.AddConsole();
             loggerFactory.AddDebug();
@@ -76,6 +82,9 @@ namespace Company.IDP
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            configurationDbContext.Database.Migrate();
+            configurationDbContext.EnsureSeedDataForContext();
 
             userContext.Database.Migrate();
             userContext.EnsureSeedDataForContext();
