@@ -68,12 +68,15 @@ namespace Company.IDP
                 .AddCompanyUserStore()
                 .AddConfigurationStore(builder =>
                     builder.UseSqlServer(identityServerDataDbConnectionString,
+                    options => options.MigrationsAssembly(migrationAssembly)))
+                .AddOperationalStore(builder =>
+                    builder.UseSqlServer(identityServerDataDbConnectionString,
                     options => options.MigrationsAssembly(migrationAssembly)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, 
-            ILoggerFactory loggerFactory, UserContext userContext, ConfigurationDbContext configurationDbContext)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env,
+            ILoggerFactory loggerFactory, UserContext userContext, ConfigurationDbContext configurationDbContext, PersistedGrantDbContext persistedGrantDbContext)
         {
             loggerFactory.AddConsole();
             loggerFactory.AddDebug();
@@ -85,6 +88,8 @@ namespace Company.IDP
 
             configurationDbContext.Database.Migrate();
             configurationDbContext.EnsureSeedDataForContext();
+
+            persistedGrantDbContext.Database.Migrate();
 
             userContext.Database.Migrate();
             userContext.EnsureSeedDataForContext();
